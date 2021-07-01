@@ -1,0 +1,312 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://mbp.ipvs.de/device-description.schema.json",
+  "title": "IoT-Device",
+  "description": "Allows the description of devices within the scope of the Internet of Things in order to enable automatic device discovery based on search criteria.",
+  "type": "object",
+  "required": [
+    "name",
+    "description",
+    "keywords",
+    "location",
+    "identifiers",
+    "ssh"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "description": "Name of the device that summarizes its main purpose.",
+      "type": "string"
+    },
+    "description": {
+      "description": "A textual description of the device, indicating its purpose, capabilities, intended usage and context.",
+      "type": "string"
+    },
+    "keywords": {
+      "description": "A list of keywords that are helpful when searching for devices.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "identifiers": {
+      "description": "Collection of metadata allowing the identification of the device among others.",
+      "type": "object",
+      "required": [
+        "type",
+        "os_name",
+        "mac_address"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "description": "Type of the device.",
+          "type": "string",
+          "minLength": 2
+        },
+        "model": {
+          "description": "Model name or version number of the device as stated by the manufacturer.",
+          "type": "string",
+          "minLength": 2
+        },
+        "manufacturer": {
+          "description": "Name of the manufacturer or vendor of the device.",
+          "type": "string",
+          "minLength": 2
+        },
+        "os_name": {
+          "description": "Name and version of the operating system that runs on the device. Null indicates that no operating system is running on the device.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 2
+        },
+        "mac_address": {
+          "description": "The MAC address of the device, acting as unique identifier across all available devices.",
+          "type": "string",
+          "pattern": "^([A-F0-9]{2}:){5}[A-F0-9]{2}$"
+        }
+      }
+    },
+    "location": {
+      "description": "Describes the physical location of the device, either informally as text or formally as geographic coordinates.",
+      "type": "object",
+      "anyOf": [
+        {
+          "required": [
+            "informal"
+          ]
+        },
+        {
+          "required": [
+            "coordinates"
+          ]
+        }
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "coordinates": {
+          "description": "Geographic coordinates (lat/lon) describing the location of the device.",
+          "type": "object",
+          "required": [],
+          "additionalProperties": false,
+          "properties": {
+            "lat": {
+              "description": "Latitude of the device location.",
+              "type": "number"
+            },
+            "lon": {
+              "description": "Longitude of the device location.",
+              "type": "number"
+            }
+          }
+        },
+        "description": {
+          "description": "Informal description of the device's location via plain text.",
+          "type": "string"
+        },
+        "qoc": {
+          "description": "Collection of quality of context (QoC) attributes with respect to the location data.",
+          "type": "object",
+          "$ref": "#/$defs/qualities_of_context",
+          "additionalProperties": false
+        }
+      }
+    },
+    "capabilities": {
+      "description": "Collection of attributes that describe the capabilities of the device, e.g. in terms of hardware properties.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "": {
+          "description": "A capability attribute, consisting out of a value of an arbitrary type.",
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "description": "Value of the attribute.",
+              "type": [
+                "boolean",
+                "number",
+                "string",
+                "null"
+              ]
+            },
+            "cumulative": {
+              "description": "Indicates whether the attribute behaves cumulatively (e.g. available RAM) on the device or not (e.g. CPU cores).",
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      }
+    },
+    "context": {
+      "description": "Collection of attributes that describe the context of the device, e.g. in terms of its environment and available infrastructure. In addition, these attributes can be amended by qualities of context (QoC).",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "": {
+          "description": "Attribute consisting out of a value of an arbitrary type.",
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "description": "Value of the attribute.",
+              "type": [
+                "boolean",
+                "number",
+                "string",
+                "null"
+              ]
+            },
+            "qoc": {
+              "description": "Collection of quality of context (QoC) attributes with respect to the context attribute.",
+              "type": "object",
+              "$ref": "#/$defs/qualities_of_context",
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    },
+    "attachments": {
+      "description": "Collects descriptions of actuators or sensors that are attached to the device.",
+      "type": "array",
+      "items": {
+        "description": "Description of an actuator or sensor that is attached to the device.",
+        "type": "object",
+        "required": [
+          "type",
+          "model",
+          "object"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "description": "Indicates whether the attachment is either an actuator or a sensor.",
+            "type": "string",
+            "enum": [
+              "actuator",
+              "sensor"
+            ]
+          },
+          "model": {
+            "description": "Model name or version number of the device as stated by the manufacturer.",
+            "type": "string",
+            "minLength": 2
+          },
+          "object": {
+            "description": "Describes the object that is observed or manipulated by the attachment.",
+            "type": "object",
+            "required": [
+              "description",
+              "quantity"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "description": {
+                "description": "Textual description of the entity.",
+                "type": "string",
+                "minLength": 2
+              },
+              "quantity": {
+                "description": "Physical quantity of the entity that is observed or manipulated.",
+                "type": "string",
+                "minLength": 2
+              }
+            }
+          },
+          "port": {
+            "description": "Port via which the attachment is connected to the device.",
+            "type": [
+              "number",
+              "string"
+            ]
+          }
+        }
+      }
+    },
+    "ssh": {
+      "description": "Collects information that is required for establishing Secure Shell (SSH) connections to the device.",
+      "type": "object",
+      "oneOf": [
+        {
+          "required": [
+            "ip_address",
+            "username",
+            "private_key"
+          ]
+        },
+        {
+          "required": [
+            "ip_address",
+            "username",
+            "password"
+          ]
+        }
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ip_address": {
+          "description": "IPv4 address of the device within its IP network.",
+          "type": "string",
+          "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+        },
+        "username": {
+          "description": "Name of the user to use for SSH on the device.",
+          "type": "string",
+          "minLength": 2
+        },
+        "private_key": {
+          "description": "Private SSH key that may be used for authorization when establishing the SSH connection.",
+          "type": "string",
+          "minLength": 50
+        },
+        "password": {
+          "description": "Password that may be used for authorization when establishing the SSH connection.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "qualities_of_context": {
+      "description": "Collection of quality of context (QoC) attributes, each consisting out of a value of an arbitrary type.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "": {
+          "description": "A quality of context (QoC) attribute, consisting out of a value of an arbitrary type.",
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "description": "Value of the quality of context attribute.",
+              "type": [
+                "boolean",
+                "number",
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

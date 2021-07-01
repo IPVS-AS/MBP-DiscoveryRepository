@@ -1,5 +1,6 @@
 package de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints;
 
+import de.ipvs.as.mbp.discovery_repository.DynamicBeanProvider;
 import de.ipvs.as.mbp.discovery_repository.Main;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.MessageService;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.PubSubService;
@@ -62,7 +63,7 @@ public class EndpointCollector {
 
     /**
      * Dispatches a given message that was received under a given topic to the responsible {@link MessagingEndpoint}
-     * method. For this, the message is transformed to a {@link JSONObject} and passed to an instance of the
+     * method. For this, the message is transformed to a {@link JSONObject} and passed to the bean of the
      * method forming the responsible endpoint. Furthermore, possible bodies of reply messages that are returned as
      * {@link JSONObject}s from the endpoint method are transformed to reply messages and published accordingly.
      *
@@ -79,13 +80,13 @@ public class EndpointCollector {
                 //Get annotation of the method
                 MessagingEndpoint endpointAnnotation = method.getAnnotation(MessagingEndpoint.class);
 
-                //Create object from the controller class of the method
-                Object object = method.getDeclaringClass().getConstructor().newInstance();
+                //Get bean of the method's controller class
+                Object bean = DynamicBeanProvider.get(method.getDeclaringClass());
 
                 //Check if message returns a JSON object as reply
                 if (method.getReturnType().isAssignableFrom(JSONObject.class)) {
                     //Call the method to handle the message and get the reply message body
-                    JSONObject replyMessageBody = (JSONObject) method.invoke(object, topic, jsonMessage);
+                    JSONObject replyMessageBody = (JSONObject) method.invoke(bean, topic, jsonMessage);
 
                     //Publish the reply message
                     messageService.publishReplyMessage(replyMessageBody, jsonMessage, endpointAnnotation.type());

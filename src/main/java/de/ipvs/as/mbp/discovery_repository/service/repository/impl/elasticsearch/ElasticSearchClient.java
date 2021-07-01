@@ -160,8 +160,15 @@ public class ElasticSearchClient implements RepositoryClient {
      */
     @Override
     public void updateDocument(String id, JSONObject document) {
+        //Create update request
         UpdateRequest updateRequest = new UpdateRequest(this.indexName, id).doc(document);
-        //TODO
+
+        try {
+            //Update the document
+            this.restClient.update(updateRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            handleException(e);
+        }
     }
 
     /**
@@ -187,10 +194,14 @@ public class ElasticSearchClient implements RepositoryClient {
      */
     @Override
     public void clearRepository() {
-        //Check if index exists
-        if (this.restClient.indices().exists(new GetIndexRequest(this.indexName), RequestOptions.DEFAULT)) {
-            //Delete index
-            this.restClient.indices().delete(new DeleteIndexRequest(this.indexName), RequestOptions.DEFAULT);
+        try {
+            //Check if index exists
+            if (this.restClient.indices().exists(new GetIndexRequest(this.indexName), RequestOptions.DEFAULT)) {
+                //Delete index
+                this.restClient.indices().delete(new DeleteIndexRequest(this.indexName), RequestOptions.DEFAULT);
+            }
+        } catch (IOException e) {
+            handleException(e);
         }
     }
 
@@ -251,12 +262,13 @@ public class ElasticSearchClient implements RepositoryClient {
     }
 
     /**
-     * Returns all documents from the repository.
+     * Returns all available documents from the repository as a map that contains the identifiers of the documents
+     * as well as their contents.
      *
-     * @return The collection of all documents
+     * @return The map (document ID --> document content) of all available documents
      */
     @Override
-    public List<JSONObject> getAllDocuments() {
+    public Map<String, JSONObject> getAllDocuments() {
         //Build search request
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder().query(new MatchAllQueryBuilder());
 
@@ -269,7 +281,7 @@ public class ElasticSearchClient implements RepositoryClient {
             response = this.restClient.search(searchRequest, RequestOptions.DEFAULT);
         } catch (IOException e) {
             handleException(e);
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
         //Get hits
@@ -277,11 +289,11 @@ public class ElasticSearchClient implements RepositoryClient {
 
         //Check for any hits
         if ((searchHits == null) || (searchHits.length < 1)) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
-        //Convert all hits to JSON objects and collect them to the result list
-        return Arrays.stream(searchHits).map(h -> new JSONObject(h.getSourceAsString())).collect(Collectors.toList());
+        //Convert all hits to JSON objects and put them in a map (document ID --> document content)
+        return Arrays.stream(searchHits).collect(Collectors.toMap(SearchHit::getId, h -> new JSONObject(h.getSourceAsString())));
     }
 
     /**

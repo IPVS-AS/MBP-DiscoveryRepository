@@ -4,6 +4,7 @@ import de.ipvs.as.mbp.discovery_repository.service.repository.handler.Repository
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface RepositoryClient {
@@ -97,11 +98,12 @@ public interface RepositoryClient {
     Set<String> getKeySummary();
 
     /**
-     * Returns all documents from the repository.
+     * Returns all available documents from the repository as a map that contains the identifiers of the documents
+     * as well as their contents.
      *
-     * @return The collection of all documents
+     * @return The map (document ID --> document content) of all available documents
      */
-    List<JSONObject> getAllDocuments();
+    Map<String, JSONObject> getAllDocuments();
 
     /**
      * Sets the exception handler that is supposed to be used for handling exceptions that occur during the

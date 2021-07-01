@@ -1,0 +1,69 @@
+{
+  "name": "My Raspberry Pi",
+  "description": "A raspberry Pi, located in the living room, equipped with a temperature sensor.",
+  "keywords": [
+    "Raspberry",
+    "Temperature",
+    "Living Room"
+  ],
+  "location": {
+    "description": "Living room",
+    "coordinates": {
+      "lat": 48.74515692739688,
+      "lon": 9.106655538669651
+    }
+  },
+  "identifiers": {
+    "type": "Raspberry Pi",
+    "model": "Type B",
+    "manufacturer": "Raspberry Pi Foundation",
+    "os_name": "Ubuntu 16.04",
+    "mac_address": "AA:BB:CC:DD:EE:FF"
+  },
+  "capabilities": {
+    "RAM": {
+      "value": 4000
+    },
+    "Security": {
+      "value": "SSL"
+    },
+    "Python": {
+      "value": true
+    }
+  },
+  "context": {
+    "connectivity": {
+      "value": "5G",
+      "qoc": {
+        "precision": {
+          "value": 1
+        }
+      }
+    }
+  },
+  "attachments": [
+    {
+      "type": "sensor",
+      "model": "Tempy Temperature Sensor",
+      "object": {
+        "description": "Temperature in living room",
+        "quantity": "temperature"
+      },
+      "port": 2
+    },
+    {
+      "type": "actuator",
+      "model": "HVAC controller",
+      "object": {
+        "description": "HVAC in living room",
+        "quantity": "temperature"
+      },
+      "port": 4
+    }
+  ],
+  "ssh": {
+    "ip_address": "192.168.0.21",
+    "username": "ubuntu",
+    "password": "test"
+  }
+}

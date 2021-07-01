@@ -40,12 +40,12 @@ public class PubSubService {
     private final Map<String, PubSubMessageHandler> subscriptions;
 
     /*
-    Inject broker-related settings from the application.properties file.
+    Inject broker-related properties from the application.properties file.
      */
-    @Value("${mqtt_broker.host}")
+    @Value("${pubsub_broker.host}")
     private String brokerHost;
 
-    @Value("${mqtt_broker.port}")
+    @Value("${pubsub_broker.port}")
     private int brokerPort;
 
     /**
