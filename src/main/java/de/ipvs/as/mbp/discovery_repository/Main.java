@@ -6,8 +6,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Main class of the discovery repository.
  */
-@SpringBootApplication(scanBasePackages = {"de.ipvs.as.mbp.discovery_repository"})
+@SpringBootApplication(scanBasePackages = {Main.BASE_PACKAGES})
 public class Main {
+
+    //Base package of the repository application
+    public static final String BASE_PACKAGES = "de.ipvs.as.mbp.discovery_repository";
 
     /**
      * Main method for launching the discovery repository application.

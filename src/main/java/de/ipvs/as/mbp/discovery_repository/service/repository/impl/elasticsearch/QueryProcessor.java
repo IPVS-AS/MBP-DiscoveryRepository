@@ -1,8 +1,5 @@
-package de.ipvs.as.mbp.discovery_repository.service.query;
+package de.ipvs.as.mbp.discovery_repository.service.repository.impl.elasticsearch;
 
-import org.springframework.stereotype.Service;
-
-@Service
 public class QueryProcessor {
 
     /**

@@ -9,4 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface MessagingEndpoint {
     String topic();
+
+    String type() default "";
 }

@@ -1,6 +1,5 @@
 package de.ipvs.as.mbp.discovery_repository.endpoints.messaging;
 
-import de.ipvs.as.mbp.discovery_repository.service.messaging.PubSubService;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints.MessagingController;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints.MessagingEndpoint;
 import org.json.JSONObject;
@@ -12,9 +11,15 @@ import org.json.JSONObject;
 @MessagingController
 public class TestController {
 
-    @MessagingEndpoint(topic = "+/discovery/+/test")
-    public JSONObject handleTestRequests(String topic, JSONObject message){
-        System.out.println("hier!");
-        return new JSONObject();
+    @MessagingEndpoint(topic = "+/discovery/+/test", type = "repository_test_reply")
+    public JSONObject handleTestRequests(String topic, JSONObject message) {
+        //Create body of reply message
+        JSONObject replyMessageBody = new JSONObject();
+
+        //Add number of available device descriptions
+        replyMessageBody.put("devicesCount", 30);
+
+        //Return body of the reply message
+        return replyMessageBody;
     }
 }
