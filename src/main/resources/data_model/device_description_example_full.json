@@ -31,6 +31,16 @@
       "value": true
     }
   },
+  "context": {
+    "connectivity": {
+      "value": "5G",
+      "qoc": {
+        "precision": {
+          "value": 1
+        }
+      }
+    }
+  },
   "attachments": [
     {
       "type": "sensor",

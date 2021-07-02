@@ -9,6 +9,9 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -128,7 +131,7 @@ public class ElasticSearchClient implements RepositoryClient {
     @Override
     public String insertDocument(JSONObject document) {
         //Create index request
-        IndexRequest indexRequest = new IndexRequest(this.indexName).source(document, XContentType.JSON);
+        IndexRequest indexRequest = new IndexRequest(this.indexName).source(document.toString(), XContentType.JSON);
 
         try {
             //Index the document
@@ -142,14 +145,26 @@ public class ElasticSearchClient implements RepositoryClient {
     }
 
     /**
-     * Retrieves the document from the repository that matches the given identifier.
+     * Retrieves the document from the repository that matches the given identifier as {@link JSONObject} or null
+     * if the document cannot be found.
      *
      * @param id The identifier of the document to retrieve
-     * @return The document as {@link JSONObject}
+     * @return The document as {@link JSONObject} or null
      */
     @Override
     public JSONObject getDocument(String id) {
-        return null;
+        //Create get request
+        GetRequest getRequest = new GetRequest(this.indexName).id(id);
+
+        try {
+            //Retrieve the document
+            GetResponse response = this.restClient.get(getRequest, RequestOptions.DEFAULT);
+            //Get the document, transform it to JSONObject and return it
+            return new JSONObject(response.getSourceAsString());
+        } catch (IOException e) {
+            handleException(e);
+            return null;
+        }
     }
 
     /**
@@ -233,7 +248,7 @@ public class ElasticSearchClient implements RepositoryClient {
             return countResponse.getCount();
         } catch (IOException e) {
             handleException(e);
-            return -1;
+            return 0;
         }
     }
 

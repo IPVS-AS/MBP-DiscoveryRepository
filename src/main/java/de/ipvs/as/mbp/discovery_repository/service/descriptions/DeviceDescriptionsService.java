@@ -1,6 +1,7 @@
 package de.ipvs.as.mbp.discovery_repository.service.descriptions;
 
 import de.ipvs.as.mbp.discovery_repository.service.repository.RepositoryClient;
+import de.ipvs.as.mbp.discovery_repository.util.OrderedJSONObject;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -69,22 +70,6 @@ public class DeviceDescriptionsService {
 
     }
 
-    //Validate example aginst schema //TODO remove
-    @PostConstruct
-    public void test() {
-        List<String> violations = this.validateDeviceDescription(getExampleDeviceDescription());
-
-        System.out.println("---------------------------");
-
-        //Print
-        for (String vio : violations) {
-            System.out.println(vio);
-        }
-
-        System.out.println("---------------------------");
-        System.exit(-1);
-    }
-
     /**
      * Initializes the {@link DeviceDescriptionsService} by establishing the connection to the external repository.
      */
@@ -92,27 +77,6 @@ public class DeviceDescriptionsService {
     public void initialize() {
         //Establish the connection
         this.repositoryClient.connect(this.hostAddress, this.port, this.username, this.password, this.collectionName);
-    }
-
-    /**
-     * Returns all available device descriptions as a map that contains the device descriptions and their
-     * identifiers.
-     *
-     * @return The map (device description ID --> device description) of all available device descriptions
-     */
-    public Map<String, JSONObject> getAllDeviceDescriptions() {
-        //Get all documents
-        return this.repositoryClient.getAllDocuments();
-    }
-
-    /**
-     * Returns the number of available device descriptions.
-     *
-     * @return The number of device descriptions
-     */
-    public long getDeviceDescriptionsCount() {
-        //Get documents count
-        return this.repositoryClient.getDocumentsCount();
     }
 
     /**
@@ -128,12 +92,82 @@ public class DeviceDescriptionsService {
 
         try {
             //Read example JSON file and return it
-            this.exampleDeviceDescription = new JSONObject(new JSONTokener(exampleResource.getInputStream()));
+            this.exampleDeviceDescription = new OrderedJSONObject(new JSONTokener(exampleResource.getInputStream()));
+            //Return example device description
             return this.exampleDeviceDescription;
         } catch (IOException e) {
             //Failed, return empty JSONObject instead
             return new JSONObject();
         }
+    }
+
+    /**
+     * Returns all available device descriptions as a map that contains the device descriptions and their
+     * identifiers.
+     *
+     * @return The map (device description ID --> device description) of all available device descriptions
+     */
+    public Map<String, JSONObject> getAllDeviceDescriptions() {
+        //Get all documents
+        return this.repositoryClient.getAllDocuments();
+    }
+
+    /**
+     * Returns the device description that matches the given identifier as {@link JSONObject} or null if the device
+     * description cannot be found.
+     *
+     * @param id The identifier of the device description
+     * @return The found device description or null
+     */
+    public JSONObject getDeviceDescription(String id) {
+        //Sanity check
+        if ((id == null) || (id.isEmpty())) {
+            throw new IllegalArgumentException("The identifier of the device description must not be null or empty");
+        }
+
+        //Return document with this ID
+        return this.repositoryClient.getDocument(id);
+    }
+
+    /**
+     * Deletes the device description that matches the given identifier as {@link JSONObject}.
+     *
+     * @param id The identifier of the device description to delete
+     */
+    public void deleteDeviceDescription(String id) {
+        //Sanity check
+        if ((id == null) || (id.isEmpty())) {
+            throw new IllegalArgumentException("The identifier of the device description must not be null or empty");
+        }
+
+        //Delete the document
+        this.repositoryClient.deleteDocument(id);
+    }
+
+    /**
+     * Returns the number of available device descriptions.
+     *
+     * @return The number of device descriptions
+     */
+    public long getDeviceDescriptionsCount() {
+        //Get documents count
+        return this.repositoryClient.getDocumentsCount();
+    }
+
+    /**
+     * Inserts a given device description to the repository.
+     *
+     * @param deviceDescription The device description to insert
+     * @return The identifier of the inserted device description
+     */
+    public String addDeviceDescription(JSONObject deviceDescription) {
+        //Sanity check
+        if (deviceDescription == null) {
+            throw new IllegalArgumentException("The device description must not be null or empty.");
+        }
+
+        //Insert device description as document and return the identifier
+        return this.repositoryClient.insertDocument(deviceDescription);
     }
 
     /**
@@ -165,5 +199,60 @@ public class DeviceDescriptionsService {
 
         //No validation exception, everything fine
         return Collections.emptyList();
+    }
+
+    /**
+     * Returns whether the repository is available in which the device descriptions are stored.
+     *
+     * @return True, if the repository is available; false otherwise
+     */
+    public boolean isRepositoryAvailable() {
+        //Check whether a connection to the repository exists
+        return this.repositoryClient.isConnected();
+    }
+
+    /**
+     * Returns the host address of the repository.
+     *
+     * @return The host address
+     */
+    public String getHostAddress() {
+        return hostAddress;
+    }
+
+    /**
+     * Returns the port of the repository.
+     *
+     * @return The port
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * Returns the username that is used for authorization at the repository.
+     *
+     * @return The username
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * Returns the password that is used for authorization at the repository.
+     *
+     * @return The password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Returns the name of the collection that is used within repository.
+     *
+     * @return The collection name
+     */
+    public String getCollectionName() {
+        return collectionName;
     }
 }

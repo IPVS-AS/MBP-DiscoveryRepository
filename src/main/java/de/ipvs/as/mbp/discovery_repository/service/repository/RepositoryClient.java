@@ -48,10 +48,11 @@ public interface RepositoryClient {
     String insertDocument(JSONObject document);
 
     /**
-     * Retrieves the document from the repository that matches the given identifier.
+     * Retrieves the document from the repository that matches the given identifier as {@link JSONObject} or null
+     * if the document cannot be found.
      *
      * @param id The identifier of the document to retrieve
-     * @return The document as {@link JSONObject}
+     * @return The document as {@link JSONObject} or null
      */
     JSONObject getDocument(String id);
 

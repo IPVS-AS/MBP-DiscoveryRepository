@@ -240,4 +240,22 @@ public class PubSubService {
             connectClient();
         }, 0, RECONNECT_DELAY, TimeUnit.MILLISECONDS);
     }
+
+    /**
+     * Returns the host address that is used to connect to the broker.
+     *
+     * @return The host address
+     */
+    public String getBrokerHost() {
+        return brokerHost;
+    }
+
+    /**
+     * Returns the port that is used to connect to the broker.
+     *
+     * @return The port
+     */
+    public int getBrokerPort() {
+        return brokerPort;
+    }
 }

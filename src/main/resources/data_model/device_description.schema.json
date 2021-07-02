@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://mbp.ipvs.de/device-description.schema.json",
-  "title": "IoT-Device",
+  "title": "IoT device description",
   "description": "Allows the description of devices within the scope of the Internet of Things in order to enable automatic device discovery based on search criteria.",
   "type": "object",
   "required": [
