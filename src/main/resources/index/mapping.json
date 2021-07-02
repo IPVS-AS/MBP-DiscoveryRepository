@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "name": {
+      "type": "keyword"
+    },
+    "keywords": {
+      "type": "keyword"
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "coordinates": {
+          "type": "geo_point"
+        }
+      }
+    },
+    "attachments": {
+      "type": "nested"
+    }
+  }
+}

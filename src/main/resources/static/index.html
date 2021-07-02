@@ -125,7 +125,9 @@
                         <tr>
                             <td>Device descriptions:</td>
                             <td>
-                                <span class="badge badge-primary">{{status.repository_available ? status.device_descriptions_count : "Unknown"}}</span>
+                                <span class="badge badge-primary"
+                                      ng-show="status.repository_available">{{status.device_descriptions_count}}</span>
+                                <span class="badge badge-warning" ng-show="!status.repository_available">Unknown</span>
                             </td>
                         </tr>
                         </tbody>

@@ -9,7 +9,6 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -22,9 +21,7 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
-import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.client.indices.GetMappingsRequest;
-import org.elasticsearch.client.indices.GetMappingsResponse;
+import org.elasticsearch.client.indices.*;
 import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
@@ -82,7 +79,8 @@ public class ElasticSearchClient implements RepositoryClient {
                         .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                                 .setDefaultCredentialsProvider(credentialsProvider)));
 
-        //TODO prepare index (create, mapping...) --> in prepare funktion auslagern
+        //Prepare and initialize the index to use
+        initializeIndex();
     }
 
     /**
@@ -211,10 +209,14 @@ public class ElasticSearchClient implements RepositoryClient {
     public void clearRepository() {
         try {
             //Check if index exists
-            if (this.restClient.indices().exists(new GetIndexRequest(this.indexName), RequestOptions.DEFAULT)) {
-                //Delete index
-                this.restClient.indices().delete(new DeleteIndexRequest(this.indexName), RequestOptions.DEFAULT);
+            if (!this.restClient.indices().exists(new GetIndexRequest(this.indexName), RequestOptions.DEFAULT)) {
+                return;
             }
+            //Delete index
+            this.restClient.indices().delete(new DeleteIndexRequest(this.indexName), RequestOptions.DEFAULT);
+
+            //Prepare and initialize a new index
+            this.initializeIndex();
         } catch (IOException e) {
             handleException(e);
         }
@@ -331,6 +333,32 @@ public class ElasticSearchClient implements RepositoryClient {
     @Override
     public RepositoryExceptionHandler getExceptionHandler() {
         return this.exceptionHandler;
+    }
+
+    /**
+     * Prepares and initializes the repository index that is supposed to be used.
+     */
+    private void initializeIndex() {
+        //TODO conversion of attribute fields using a dynamic mapping:
+        //https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-templates.html
+
+        try {
+            //Check if index already exists
+            if (this.restClient.indices().exists(new GetIndexRequest(this.indexName), RequestOptions.DEFAULT)) {
+                //Index already exists, so do nothing
+                return;
+            }
+
+            //Index does not exist, so create it
+            this.restClient.indices().create(new CreateIndexRequest(this.indexName), RequestOptions.DEFAULT);
+
+            //Set mapping
+            String indexMapping = JSONReader.readResource("index_mapping.json");
+            this.restClient.indices().putMapping(new PutMappingRequest(this.indexName).source(indexMapping, XContentType.JSON), RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            //Handle the exception
+            handleException(e);
+        }
     }
 
     /**
