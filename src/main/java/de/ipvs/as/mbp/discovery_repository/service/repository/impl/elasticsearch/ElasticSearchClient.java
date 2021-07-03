@@ -28,12 +28,22 @@ import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ElasticSearchClient implements RepositoryClient {
+
+    //File containing the mapping for the index
+    private static final Resource MAPPING_RESOURCE = new ClassPathResource("index/mapping.json");
+
     //Credentials provider to use
     private final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
@@ -45,6 +55,9 @@ public class ElasticSearchClient implements RepositoryClient {
 
     //Exception handler to use for handling exceptions
     private RepositoryExceptionHandler exceptionHandler;
+
+    //Document describing the mapping to use for the index
+    private JSONObject indexMappingDocument;
 
 
     /**
@@ -81,6 +94,9 @@ public class ElasticSearchClient implements RepositoryClient {
 
         //Prepare and initialize the index to use
         initializeIndex();
+
+        //TODO
+        getKeySummary();
     }
 
     /**
@@ -134,9 +150,11 @@ public class ElasticSearchClient implements RepositoryClient {
         try {
             //Index the document
             IndexResponse response = this.restClient.index(indexRequest, RequestOptions.DEFAULT);
+
             //Get ID and return it
             return response.getId();
         } catch (IOException e) {
+            //Handle the exception
             handleException(e);
             return null;
         }
@@ -160,6 +178,7 @@ public class ElasticSearchClient implements RepositoryClient {
             //Get the document, transform it to JSONObject and return it
             return new JSONObject(response.getSourceAsString());
         } catch (IOException e) {
+            //Handle the exception
             handleException(e);
             return null;
         }
@@ -180,6 +199,7 @@ public class ElasticSearchClient implements RepositoryClient {
             //Update the document
             this.restClient.update(updateRequest, RequestOptions.DEFAULT);
         } catch (IOException e) {
+            //Handle the exception
             handleException(e);
         }
     }
@@ -198,6 +218,7 @@ public class ElasticSearchClient implements RepositoryClient {
             //Perform deletion
             this.restClient.delete(deleteRequest, RequestOptions.DEFAULT);
         } catch (IOException e) {
+            //Handle the exception
             handleException(e);
         }
     }
@@ -218,6 +239,7 @@ public class ElasticSearchClient implements RepositoryClient {
             //Prepare and initialize a new index
             this.initializeIndex();
         } catch (IOException e) {
+            //Handle the exception
             handleException(e);
         }
     }
@@ -249,33 +271,48 @@ public class ElasticSearchClient implements RepositoryClient {
             //Return result
             return countResponse.getCount();
         } catch (IOException e) {
+            //Handle the exception
             handleException(e);
-            return 0;
+            return -1;
         }
     }
 
     /**
-     * Returns a summary of all JSON keys that occur in the documents of the repository.
+     * Returns a summary map (key name --> key data type) of all keys and their associated data types
+     * that occur in the documents of the repository.
      *
-     * @return The set of occurring keys
+     * @return The map of occurring keys and their data types
      */
     @Override
-    public Set<String> getKeySummary() {
+    public Map<String, String> getKeySummary() {
         //Create get mappings request
         GetMappingsRequest getMappingsRequest = new GetMappingsRequest().indices(this.indexName);
 
         try {
             //Retrieve the mapping
             GetMappingsResponse response = this.restClient.indices().getMapping(getMappingsRequest, RequestOptions.DEFAULT);
+
             //Extract mappings
             Map<String, MappingMetadata> mappings = response.mappings();
-            //TODO
-        } catch (IOException e) {
-            handleException(e);
-            return Collections.emptySet();
-        }
 
-        return Collections.emptySet();
+            //Check if mapping for the current index is available
+            if (mappings.isEmpty() || (!mappings.containsKey(this.indexName))) {
+                return Collections.emptyMap();
+            }
+
+            //Get mapping for current index and parse it as JSON
+            JSONObject mappingData = new JSONObject(mappings.get(this.indexName).source().toString());
+
+            //Get capability object
+            JSONObject capabilityObject = mappingData.getJSONObject("properties").getJSONObject("capabilities").getJSONObject("properties");
+
+            //Get types of the capabilities
+            return capabilityObject.keySet().stream().collect(Collectors.toMap(k -> k, k -> capabilityObject.getJSONObject(k).getJSONObject("properties").getJSONObject("value").getString("type")));
+        } catch (Exception e) {
+            //Handle the exception
+            handleException(e);
+            return Collections.emptyMap();
+        }
     }
 
     /**
@@ -297,6 +334,7 @@ public class ElasticSearchClient implements RepositoryClient {
             //Perform search request
             response = this.restClient.search(searchRequest, RequestOptions.DEFAULT);
         } catch (IOException e) {
+            //Handle the exception
             handleException(e);
             return Collections.emptyMap();
         }
@@ -339,9 +377,6 @@ public class ElasticSearchClient implements RepositoryClient {
      * Prepares and initializes the repository index that is supposed to be used.
      */
     private void initializeIndex() {
-        //TODO conversion of attribute fields using a dynamic mapping:
-        //https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-templates.html
-
         try {
             //Check if index already exists
             if (this.restClient.indices().exists(new GetIndexRequest(this.indexName), RequestOptions.DEFAULT)) {
@@ -349,12 +384,19 @@ public class ElasticSearchClient implements RepositoryClient {
                 return;
             }
 
-            //Index does not exist, so create it
-            this.restClient.indices().create(new CreateIndexRequest(this.indexName), RequestOptions.DEFAULT);
+            //Index does not exist, check if index mapping is already available
+            if (this.indexMappingDocument == null) {
+                //Read mapping from class path file
+                this.indexMappingDocument = new JSONObject(new JSONTokener(MAPPING_RESOURCE.getInputStream()));
+            }
 
-            //Set mapping
-            String indexMapping = JSONReader.readResource("index_mapping.json");
-            this.restClient.indices().putMapping(new PutMappingRequest(this.indexName).source(indexMapping, XContentType.JSON), RequestOptions.DEFAULT);
+            //Create request for creating the index with the mapping
+            CreateIndexRequest createIndexRequest = new CreateIndexRequest(this.indexName)
+                    .mapping(this.indexMappingDocument.toString(), XContentType.JSON);
+
+            //Create index
+            CreateIndexResponse response = this.restClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+            System.out.println();
         } catch (IOException e) {
             //Handle the exception
             handleException(e);

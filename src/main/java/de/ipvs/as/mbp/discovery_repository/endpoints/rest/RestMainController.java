@@ -133,6 +133,24 @@ public class RestMainController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping(value = "/deviceDescriptions", produces = "application/json")
+    public ResponseEntity<Void> clearRepository() {
+        //Clear the repository
+        this.deviceDescriptionsService.clearRepository();
+
+        //Return response with the extended device description
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = "/capabilities", produces = "application/json")
+    public ResponseEntity<Map<String, String>> getCapabilitiesSummary() {
+        //Get summary about capabilities in the device descriptions
+        Map<String, String> capabilitiesMap = this.deviceDescriptionsService.getCapabilitiesSummary();
+
+        //Return response with the extended device description
+        return ResponseEntity.ok(capabilitiesMap);
+    }
+
     /**
      * Transforms a given {@link JSONObject} to a {@link JsonNode} that can be used in {@link ResponseEntity}s in order
      * to return JSON replies. If the transformation fails, null is returned instead.

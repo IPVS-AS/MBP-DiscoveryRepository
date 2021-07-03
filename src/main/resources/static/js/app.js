@@ -131,6 +131,48 @@ app.controller('MainController', ['$scope', '$http',
         }
 
         /**
+         * Asks the users whether they are sure that they want to clear the entire repository. If they agree,
+         * a server request will be performed in order to delete all device descriptions and reset the entire
+         * repository.
+         */
+        $scope.clearRepository = function () {
+            /**
+             * Performs a server request in order to delete all device descriptions and reset the entire repository.
+             */
+            function performClearRepositoryRequest() {
+                //Perform DELETE request
+                $http.delete("/deviceDescriptions").then(() => {
+                    //Clear device descriptions list
+                    $scope.deviceDescriptionsList = [];
+                    //Show success alert
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'The repository was successfully cleared.',
+                        icon: 'success',
+                        timer: ALERT_TIMEOUT
+                    });
+                }, handleRequestFailure);
+            }
+
+            //Show prompt to the users asking whether they are sure
+            Swal.fire({
+                title: 'Clear repository',
+                html: 'Are you sure you want to clear the entire repository and thus delete all device descriptons?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Delete everything'
+            }).then((result) => {
+                //Check whether user confirmed
+                if (result.isConfirmed) {
+                    //Perform clear request
+                    performClearRepositoryRequest();
+                }
+            })
+        }
+
+        /**
          * [Private]
          * Handles failed HTTP requests by evaluating the server response. If the server response contains detail
          * messages about the occurred error, these can be optionally passed to a given callback handler function.

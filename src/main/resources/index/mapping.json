@@ -9,6 +9,9 @@
     "location": {
       "type": "object",
       "properties": {
+        "description": {
+          "type": "keyword"
+        },
         "coordinates": {
           "type": "geo_point"
         }
@@ -17,5 +20,16 @@
     "attachments": {
       "type": "nested"
     }
-  }
+  },
+  "dynamic_templates": [
+    {
+      "string_caps_as_keyword": {
+        "path_match": "capabilities.*.value",
+        "match_mapping_type": "string",
+        "mapping": {
+          "type": "keyword"
+        }
+      }
+    }
+  ]
 }

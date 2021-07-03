@@ -171,6 +171,25 @@ public class DeviceDescriptionsService {
     }
 
     /**
+     * Clears the entire repository and deletes all device descriptions that are contained in it.
+     */
+    public void clearRepository() {
+        //Clear repository
+        this.repositoryClient.clearRepository();
+    }
+
+    /**
+     * Returns a summary map (key name --> key data type) of all capability keys and their associated data types
+     * that occur in the device descriptions that are stored in the repository.
+     *
+     * @return The map of occurring capability keys and their data types
+     */
+    public Map<String, String> getCapabilitiesSummary() {
+        //Get capabilities summary
+        return this.repositoryClient.getKeySummary();
+    }
+
+    /**
      * Validates a device description, given as {@link JSONObject}, against the JSON schema for device descriptions.
      * The resulting list contains messages that describe the occurred violations.
      *

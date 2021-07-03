@@ -5,7 +5,6 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface RepositoryClient {
     /**
@@ -92,11 +91,12 @@ public interface RepositoryClient {
     long getDocumentsCount();
 
     /**
-     * Returns a summary of all JSON keys that occur in the documents of the repository.
+     * Returns a summary map (key name --> key data type) of all keys and their associated data types
+     * that occur in the documents of the repository.
      *
-     * @return The set of occurring keys
+     * @return The map of occurring keys and their data types
      */
-    Set<String> getKeySummary();
+    Map<String, String> getKeySummary();
 
     /**
      * Returns all available documents from the repository as a map that contains the identifiers of the documents
