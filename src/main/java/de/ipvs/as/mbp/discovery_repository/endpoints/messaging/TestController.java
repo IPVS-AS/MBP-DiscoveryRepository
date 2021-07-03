@@ -1,8 +1,9 @@
 package de.ipvs.as.mbp.discovery_repository.endpoints.messaging;
 
+import de.ipvs.as.mbp.discovery_repository.TopicConfiguration;
+import de.ipvs.as.mbp.discovery_repository.service.descriptions.DeviceDescriptionsService;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints.MessagingController;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints.MessagingEndpoint;
-import de.ipvs.as.mbp.discovery_repository.service.descriptions.DeviceDescriptionsService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ public class TestController {
     @Autowired
     private DeviceDescriptionsService deviceDescriptionsService;
 
-    @MessagingEndpoint(topic = "+/discovery/+/test", type = "repository_test_reply")
+    @MessagingEndpoint(topic = TopicConfiguration.SUB_TOPIC_TEST, type = "repository_test_reply")
     public JSONObject handleTestRequests(String topic, JSONObject message) {
         //Retrieve number of available device descriptions
         long deviceDescriptionsCount = deviceDescriptionsService.getDeviceDescriptionsCount();

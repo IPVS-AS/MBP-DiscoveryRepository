@@ -19,7 +19,7 @@ public class MessageService {
     private PubSubService pubSubService;
 
     //Read name of the repository from the properties file
-    @Value("${repository_name}")
+    @Value("${app.name}")
     private String repositoryName;
 
     /**
