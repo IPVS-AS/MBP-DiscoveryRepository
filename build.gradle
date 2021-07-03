@@ -38,4 +38,5 @@ jar {
     manifest {
         attributes 'Main-Class': 'de.ipvs.as.mbp.discovery_repository.Main'
     }
+    from { (configurations.runtime).collect { it.isDirectory() ? it : zipTree(it) } }
 }
