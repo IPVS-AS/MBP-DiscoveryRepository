@@ -9,4 +9,7 @@ public class TopicConfiguration {
 
     //Topic to subscribe for test requests
     public static final String SUB_TOPIC_TEST = SUB_TOPIC_BASE + "/test";
+
+    //Topic to subscribe for device description queries
+    public static final String SUB_TOPIC_QUERY = SUB_TOPIC_BASE + "/query";
 }

@@ -23,10 +23,13 @@ import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.client.indices.*;
 import org.elasticsearch.cluster.metadata.MappingMetadata;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.core.io.ClassPathResource;
@@ -37,8 +40,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * An implementation of the {@link RepositoryClient} interface for Elasticsearch repositories.
+ */
 public class ElasticSearchClient implements RepositoryClient {
 
     //File containing the mapping for the index
@@ -94,9 +101,6 @@ public class ElasticSearchClient implements RepositoryClient {
 
         //Prepare and initialize the index to use
         initializeIndex();
-
-        //TODO
-        getKeySummary();
     }
 
     /**
@@ -245,14 +249,47 @@ public class ElasticSearchClient implements RepositoryClient {
     }
 
     /**
-     * Searches all documents in the repository for those that match a given query.
+     * Searches all documents in the repository for those that match a given query,
+     * consisting out of a {@link JSONArray} of requirements and a {@link JSONArray} of scoring criteria.
      *
-     * @param query The query to use as {@link JSONObject}
-     * @return The collection of documents that match the query
+     * @param requirements    The requirements of the query
+     * @param scoringCriteria The scoring criteria of the query
+     * @return A list of matching device descriptions
      */
     @Override
-    public List<JSONObject> search(JSONObject query) {
-        return null;
+    public List<JSONObject> query(JSONArray requirements, JSONArray scoringCriteria) {
+        //Use the query generator to create a corresponding boolean query
+        BoolQueryBuilder query = QueryGenerator.generate(requirements, scoringCriteria);
+
+        //Create search source with appropriate configuration from the query
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder()
+                .query(query)
+                .size(20)
+                .timeout(new TimeValue(30, TimeUnit.SECONDS));
+
+        //Create search request
+        SearchRequest searchRequest = new SearchRequest(this.indexName).source(sourceBuilder);
+
+        //Conduct the search
+        SearchResponse response;
+        try {
+            response = this.restClient.search(searchRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            //Handle the exception
+            handleException(e);
+            return Collections.emptyList();
+        }
+
+        //Get hits from the response
+        SearchHit[] searchHits = response.getHits().getHits();
+
+        //Check if there are any hits
+        if ((searchHits == null) || (searchHits.length < 1)) {
+            return Collections.emptyList();
+        }
+
+        //Transform hits to JSON objects and collect them to a list
+        return Arrays.stream(searchHits).map(h -> new JSONObject(h.getSourceAsString())).collect(Collectors.toList());
     }
 
     /**

@@ -1,6 +1,7 @@
 package de.ipvs.as.mbp.discovery_repository.service.repository;
 
 import de.ipvs.as.mbp.discovery_repository.service.repository.handler.RepositoryExceptionHandler;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.List;
@@ -76,12 +77,14 @@ public interface RepositoryClient {
     void clearRepository();
 
     /**
-     * Searches all documents in the repository for those that match a given query.
+     * Searches all documents in the repository for those that match a given query,
+     * consisting out of a {@link JSONArray} of requirements and a {@link JSONArray} of scoring criteria.
      *
-     * @param query The query to use as {@link JSONObject}
-     * @return The collection of documents that match the query
+     * @param requirements    The requirements of the query
+     * @param scoringCriteria The scoring criteria of the query
+     * @return A list of matching device descriptions
      */
-    List<JSONObject> search(JSONObject query);
+    List<JSONObject> query(JSONArray requirements, JSONArray scoringCriteria);
 
     /**
      * Returns the total number of documents in the repository.

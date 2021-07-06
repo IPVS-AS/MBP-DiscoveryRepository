@@ -5,6 +5,7 @@ import de.ipvs.as.mbp.discovery_repository.util.OrderedJSONObject;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,6 +131,37 @@ public class DeviceDescriptionsService {
     }
 
     /**
+     * Returns the number of available device descriptions.
+     *
+     * @return The number of device descriptions
+     */
+    public long getDeviceDescriptionsCount() {
+        //Get documents count
+        return this.repositoryClient.getDocumentsCount();
+    }
+
+    /**
+     * Searches all device descriptions that are stored in the repository for those that match a given query,
+     * consisting out of a {@link JSONArray} of requirements and a {@link JSONArray} of scoring criteria.
+     *
+     * @param requirements    The requirements of the query
+     * @param scoringCriteria The scoring criteria of the query
+     * @return A list of matching device descriptions
+     */
+    public List<JSONObject> queryDeviceDescriptions(JSONArray requirements, JSONArray scoringCriteria) {
+        //Sanity checks
+        if (requirements == null) {
+            requirements = new JSONArray();
+        }
+        if (scoringCriteria == null) {
+            scoringCriteria = new JSONArray();
+        }
+
+        //Query the device description repository
+        return this.repositoryClient.query(requirements, scoringCriteria);
+    }
+
+    /**
      * Deletes the device description that matches the given identifier as {@link JSONObject}.
      *
      * @param id The identifier of the device description to delete
@@ -142,16 +174,6 @@ public class DeviceDescriptionsService {
 
         //Delete the document
         this.repositoryClient.deleteDocument(id);
-    }
-
-    /**
-     * Returns the number of available device descriptions.
-     *
-     * @return The number of device descriptions
-     */
-    public long getDeviceDescriptionsCount() {
-        //Get documents count
-        return this.repositoryClient.getDocumentsCount();
     }
 
     /**
