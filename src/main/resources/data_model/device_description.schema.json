@@ -10,7 +10,8 @@
     "keywords",
     "location",
     "identifiers",
-    "ssh"
+    "ssh",
+    "last_update"
   ],
   "additionalProperties": false,
   "properties": {
@@ -279,6 +280,10 @@
           "type": "string"
         }
       }
+    },
+    "last_update": {
+      "description": "Timestamp that indicates when the device description was updated for the last time.",
+      "type": "number"
     }
   },
   "$defs": {

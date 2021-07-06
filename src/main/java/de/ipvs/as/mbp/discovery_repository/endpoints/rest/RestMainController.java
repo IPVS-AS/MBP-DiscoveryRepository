@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +94,9 @@ public class RestMainController {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "The device description does not seem to consist out of valid JSON.");
         }
 
+        //Extend the device description for a timestamp
+        jsonDescription.put("last_update", Instant.now().toEpochMilli());
+
         //Validate the JSON object against the JSON schema for device descriptions
         List<String> violationMessages = this.deviceDescriptionsService.validateDeviceDescription(jsonDescription);
 
@@ -160,6 +164,7 @@ public class RestMainController {
      */
     private JsonNode transformJSON(JSONObject object) {
         try {
+            //Transform JSONObject
             return objectMapper.readTree(object.toString());
         } catch (JsonProcessingException e) {
             return null;
