@@ -32,7 +32,7 @@ public class ParserUtils {
         String wildcardMatch = ParserUtils.extendWithWildcards(match, operator);
 
         //Create query
-        WildcardQueryBuilder query = QueryBuilders.wildcardQuery("location.description", wildcardMatch).caseInsensitive(true);
+        WildcardQueryBuilder query = QueryBuilders.wildcardQuery(fieldPath, wildcardMatch).caseInsensitive(true);
 
         //Add query to the bool query, depending on the operator
         if (operator.equals("not_equals")) {
