@@ -15,6 +15,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
@@ -149,7 +150,8 @@ public class ElasticSearchClient implements RepositoryClient {
     @Override
     public String insertDocument(JSONObject document) {
         //Create index request
-        IndexRequest indexRequest = new IndexRequest(this.indexName).source(document.toString(), XContentType.JSON);
+        IndexRequest indexRequest = new IndexRequest(this.indexName).source(document.toString(), XContentType.JSON)
+                .setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);;
 
         try {
             //Index the document
@@ -197,7 +199,8 @@ public class ElasticSearchClient implements RepositoryClient {
     @Override
     public void updateDocument(String id, JSONObject document) {
         //Create update request
-        UpdateRequest updateRequest = new UpdateRequest(this.indexName, id).doc(document);
+        UpdateRequest updateRequest = new UpdateRequest(this.indexName, id).doc(document)
+                .setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
 
         try {
             //Update the document
@@ -216,7 +219,8 @@ public class ElasticSearchClient implements RepositoryClient {
     @Override
     public void deleteDocument(String id) {
         //Create delete request
-        DeleteRequest deleteRequest = new DeleteRequest(this.indexName).id(id);
+        DeleteRequest deleteRequest = new DeleteRequest(this.indexName).id(id)
+                .setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);;
 
         try {
             //Perform deletion
