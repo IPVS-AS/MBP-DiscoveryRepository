@@ -20,7 +20,6 @@ import java.util.Set;
 public class EndpointCollector {
 
     //Auto-wired components
-    private final PubSubService pubSubService;
     private final MessageService messageService;
 
     /**
@@ -34,7 +33,6 @@ public class EndpointCollector {
     @Autowired
     public EndpointCollector(PubSubService pubSubService, MessageService messageService) {
         //Store component references globally
-        this.pubSubService = pubSubService;
         this.messageService = messageService;
 
         //Create reflections object

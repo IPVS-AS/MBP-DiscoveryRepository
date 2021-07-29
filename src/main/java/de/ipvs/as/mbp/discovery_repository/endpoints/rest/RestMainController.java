@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.ipvs.as.mbp.discovery_repository.error.ApplicationException;
 import de.ipvs.as.mbp.discovery_repository.service.descriptions.DeviceDescriptionsService;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.PubSubService;
+import de.ipvs.as.mbp.discovery_repository.service.subscription.SubscriptionService;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ public class RestMainController {
 
     @Autowired
     private DeviceDescriptionsService deviceDescriptionsService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Autowired
     private PubSubService pubSubService;
@@ -63,7 +67,7 @@ public class RestMainController {
         //Create hashmap in order to collect the status information
         Map<String, Object> statusMap = new HashMap<>();
 
-        //Add status information to mao
+        //Add status information to map
         statusMap.put("repository_available", deviceDescriptionsService.isRepositoryAvailable());
         statusMap.put("repository_host", deviceDescriptionsService.getHostAddress());
         statusMap.put("repository_port", deviceDescriptionsService.getPort());
@@ -119,6 +123,9 @@ public class RestMainController {
         JSONObject insertedDescription = new JSONObject(jsonDescription, JSONObject.getNames(jsonDescription));
         insertedDescription.put("id", id);
 
+        //Notify the IoT platform if necessary
+        this.subscriptionService.notifyForInsertOrDelete();
+
         //Return response with the extended device description
         return new ResponseEntity<>(transformJSON(insertedDescription), HttpStatus.CREATED);
     }
@@ -133,6 +140,9 @@ public class RestMainController {
         //Delete the device description
         this.deviceDescriptionsService.deleteDeviceDescription(id);
 
+        //Notify the IoT platform if necessary
+        this.subscriptionService.notifyForInsertOrDelete();
+
         //Return response with the extended device description
         return ResponseEntity.ok().build();
     }
@@ -141,6 +151,9 @@ public class RestMainController {
     public ResponseEntity<Void> clearRepository() {
         //Clear the repository
         this.deviceDescriptionsService.clearRepository();
+
+        //Notify the IoT platform if necessary
+        this.subscriptionService.notifyForInsertOrDelete();
 
         //Return response with the extended device description
         return ResponseEntity.ok().build();

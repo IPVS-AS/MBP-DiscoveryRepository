@@ -1,9 +1,11 @@
 package de.ipvs.as.mbp.discovery_repository.endpoints.messaging;
 
 import de.ipvs.as.mbp.discovery_repository.TopicConfiguration;
+import de.ipvs.as.mbp.discovery_repository.service.subscription.Subscription;
 import de.ipvs.as.mbp.discovery_repository.service.descriptions.DeviceDescriptionsService;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints.MessagingController;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints.MessagingEndpoint;
+import de.ipvs.as.mbp.discovery_repository.service.subscription.SubscriptionService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class QueryController {
     @Autowired
     private DeviceDescriptionsService deviceDescriptionsService;
 
+    @Autowired
+    private SubscriptionService subscriptionService;
+
     @MessagingEndpoint(topic = TopicConfiguration.SUB_TOPIC_QUERY, type = "repository_test_reply")
     public JSONObject handleQueryRequests(String topic, JSONObject message) {
         //Get message payload
@@ -41,10 +46,19 @@ public class QueryController {
         //Create body of reply message
         JSONObject replyMessageBody = new JSONObject();
 
-        //Copy reference ID from request message if available
+        //Check if subscription details are available
         replyMessageBody.put("referenceId", JSONObject.NULL);
         if ((subscriptionDetails != null) && (!subscriptionDetails.optString("referenceId", "").isEmpty())) {
-            replyMessageBody.put("referenceId", subscriptionDetails.getString("referenceId"));
+            //Extract subscription fields
+            String returnTopic = subscriptionDetails.getString("returnTopic");
+            String referenceId = subscriptionDetails.getString("referenceId");
+
+            //Copy reference ID to reply message
+            replyMessageBody.put("referenceId", referenceId);
+
+            //Register corresponding subscription
+            Subscription newSubscription = new Subscription(returnTopic, referenceId, requirements, scoringCriteria, matchingDeviceDescriptions);
+            this.subscriptionService.registerSubscription(newSubscription);
         }
 
         //Add the matching device descriptions to the message

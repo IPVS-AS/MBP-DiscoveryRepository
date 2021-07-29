@@ -124,7 +124,7 @@
       "type": "object",
       "additionalProperties": false,
       "patternProperties": {
-        "": {
+        "^[a-zA-Z_.]+$": {
           "description": "A capability attribute, consisting out of a value of an arbitrary type.",
           "type": "object",
           "required": [
@@ -155,7 +155,7 @@
       "type": "object",
       "additionalProperties": false,
       "patternProperties": {
-        "": {
+        "^[a-zA-Z_]+$": {
           "description": "Attribute consisting out of a value of an arbitrary type.",
           "type": "object",
           "required": [
@@ -292,7 +292,7 @@
       "type": "object",
       "additionalProperties": false,
       "patternProperties": {
-        "": {
+        "^[a-zA-Z_.]+$": {
           "description": "A quality of context (QoC) attribute, consisting out of a value of an arbitrary type.",
           "type": "object",
           "required": [

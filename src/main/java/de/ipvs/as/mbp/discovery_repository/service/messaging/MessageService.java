@@ -87,9 +87,6 @@ public class MessageService {
         //Extend it for default fields and the message body
         extendMessage(replyMessageObject, replyMessageBody, type);
 
-        //Use repository name as sender name
-        replyMessageObject.put("senderName", this.repositoryName);
-
         //Check if a correlation identifier was provided
         if (requestMessage.has("correlationId")) {
             //Extract correlation identifier
@@ -127,6 +124,7 @@ public class MessageService {
             message.put("type", type);
         }
         message.put("time", Instant.now().toEpochMilli());
+        message.put("senderName", this.repositoryName);
 
         //Add message body
         message.put("message", messageBody);
