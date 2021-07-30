@@ -78,6 +78,7 @@ public class RestMainController {
         statusMap.put("broker_host", pubSubService.getBrokerHost());
         statusMap.put("broker_port", pubSubService.getBrokerPort());
         statusMap.put("device_descriptions_count", deviceDescriptionsService.getDeviceDescriptionsCount());
+        statusMap.put("subscriptions_count", subscriptionService.getSubscriptionsCount());
 
         //Return status map as response
         return ResponseEntity.ok(statusMap);

@@ -84,10 +84,13 @@ public class EndpointCollector {
                 //Check if message returns a JSON object as reply
                 if (method.getReturnType().isAssignableFrom(JSONObject.class)) {
                     //Call the method to handle the message and get the reply message body
-                    JSONObject replyMessageBody = (JSONObject) method.invoke(bean, topic, jsonMessage);
+                    Object replyMessageBody = method.invoke(bean, topic, jsonMessage);
+
+                    //Check whether a reply message body was returned
+                    if(replyMessageBody == null) return;
 
                     //Publish the reply message
-                    messageService.publishReplyMessage(replyMessageBody, jsonMessage, endpointAnnotation.type());
+                    messageService.publishReplyMessage((JSONObject) replyMessageBody, jsonMessage, endpointAnnotation.type());
                 }
             } catch (Exception e) {
                 //Handle exceptions

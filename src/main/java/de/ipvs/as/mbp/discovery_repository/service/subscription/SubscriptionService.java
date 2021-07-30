@@ -72,6 +72,15 @@ public class SubscriptionService {
     }
 
     /**
+     * Returns the total number of currently registered subscriptions.
+     *
+     * @return The number of subscriptions
+     */
+    public int getSubscriptionsCount() {
+        return this.subscriptionsMap.size();
+    }
+
+    /**
      * Checks whether the device description query results changed for one or multiple {@link Subscription}s. If this
      * is the case, the creators of the affected {@link Subscription}s will be notified with an asynchronous message
      * about the updated query results.

@@ -134,6 +134,14 @@
                                 <span class="badge badge-warning" ng-show="!status.repository_available">Unknown</span>
                             </td>
                         </tr>
+                        <tr>
+                            <td>Subscriptions:</td>
+                            <td>
+                                <span class="badge badge-primary"
+                                      ng-show="status.repository_available">{{status.subscriptions_count}}</span>
+                                <span class="badge badge-warning" ng-show="!status.repository_available">Unknown</span>
+                            </td>
+                        </tr>
                         </tbody>
                         <tfoot></tfoot>
                     </table>
