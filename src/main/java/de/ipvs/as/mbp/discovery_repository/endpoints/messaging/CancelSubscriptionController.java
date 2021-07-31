@@ -8,6 +8,9 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Controller that exposes an endpoint for handling incoming subscription cancel request messages.
  * The purpose of these messages is to cancel existing subscriptions that have been previously registered.
@@ -24,14 +27,19 @@ public class CancelSubscriptionController {
         //Get message payload
         JSONObject messagePayload = message.getJSONObject("message");
 
-        //Extract reference ID
-        String referenceId = messagePayload.optString("referenceId");
+        //Extract reference IDs
+        List<Object> referenceIds = messagePayload.optJSONArray("referenceIds").toList();
 
-        //Sanity check
-        if ((referenceId == null) || referenceId.isEmpty()) return null;
+        //Null check
+        if (referenceIds == null) return null;
 
-        //Unregister the subscription with the given reference ID
-        this.subscriptionService.unregisterSubscription(referenceId);
+        //Stream through all reference IDs
+        referenceIds.stream()
+                .filter(Objects::nonNull) //Ignore illegal objects
+                .filter(o -> o instanceof String) //Consider only strings
+                .map(o -> (String) o) //Cast objects to string
+                .filter(s -> !s.isEmpty()) //Ignore empty reference IDs
+                .forEach(r -> this.subscriptionService.unregisterSubscription(r)); //Unregister the subscription
         return null;
     }
 }
