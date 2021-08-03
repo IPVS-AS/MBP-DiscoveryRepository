@@ -120,15 +120,17 @@ public class RestMainController {
             throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "The device description is valid, but the insertion failed. Is the repository available?");
         }
 
-        //Copy device description and extend it for the id
-        JSONObject insertedDescription = new JSONObject(jsonDescription, JSONObject.getNames(jsonDescription));
-        insertedDescription.put("id", id);
+        //Copy device description
+        JSONObject insertedDeviceDescription = new JSONObject(jsonDescription, JSONObject.getNames(jsonDescription));
 
-        //Notify the IoT platform if necessary
-        this.subscriptionService.notifyForInsertOrDelete();
+        //Notify the subscribers if necessary
+        this.subscriptionService.notifyAboutInsert(insertedDeviceDescription);
+
+        //Extend device description for an ID field
+        insertedDeviceDescription.put("id", id);
 
         //Return response with the extended device description
-        return new ResponseEntity<>(transformJSON(insertedDescription), HttpStatus.CREATED);
+        return new ResponseEntity<>(transformJSON(insertedDeviceDescription), HttpStatus.CREATED);
     }
 
     @DeleteMapping(value = "/deviceDescriptions/{id}", produces = "application/json")
@@ -138,11 +140,18 @@ public class RestMainController {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "The device description identifier must not be null or empty.");
         }
 
+        //Retrieve the device description from the repository
+        JSONObject deviceDescription = this.deviceDescriptionsService.getDeviceDescription(id);
+
+        //Check if the device description could be found
+        if (deviceDescription == null)
+            throw new ApplicationException(HttpStatus.NOT_FOUND, "The device description does not exist.");
+
         //Delete the device description
         this.deviceDescriptionsService.deleteDeviceDescription(id);
 
-        //Notify the IoT platform if necessary
-        this.subscriptionService.notifyForInsertOrDelete();
+        //Notify the subscribers if necessary
+        this.subscriptionService.notifyAboutDelete(deviceDescription);
 
         //Return response with the extended device description
         return ResponseEntity.ok().build();
@@ -153,8 +162,8 @@ public class RestMainController {
         //Clear the repository
         this.deviceDescriptionsService.clearRepository();
 
-        //Notify the IoT platform if necessary
-        this.subscriptionService.notifyForInsertOrDelete();
+        //Notify the subscribers if necessary
+        this.subscriptionService.notifyAboutClear();
 
         //Return response with the extended device description
         return ResponseEntity.ok().build();

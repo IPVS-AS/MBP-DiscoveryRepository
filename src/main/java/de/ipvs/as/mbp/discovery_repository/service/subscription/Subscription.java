@@ -12,7 +12,7 @@ import java.util.Objects;
  */
 public class Subscription {
     //The topic to which the asynchronous notifications are supposed to be sent
-    private String returnTopic;
+    private String notificationTopic;
 
     //The reference ID to use in the notification messages
     private String referenceId;
@@ -27,17 +27,26 @@ public class Subscription {
     private List<JSONObject> queryResult;
 
     /**
+     * Creates a new, incomplete {@link Subscription} from a given reference ID.
+     *
+     * @param referenceId The reference ID to use
+     */
+    public Subscription(String referenceId) {
+        setReferenceId(referenceId);
+    }
+
+    /**
      * Creates a new {@link Subscription} object from a given return topic, a reference ID, an array of
      * query requirements, an array of scoring criteria and a list containing the most recent results for the query.
      *
-     * @param returnTopic     The return topic to which the asynchronous notifications are supposed to be sent
-     * @param referenceId     The reference ID to use in the notification messages
-     * @param requirements    The requirements of the query
-     * @param scoringCriteria The scoring criteria of the query
-     * @param queryResult     The most recent query result
+     * @param notificationTopic The return topic to which the asynchronous notifications are supposed to be sent
+     * @param referenceId       The reference ID to use in the notification messages
+     * @param requirements      The requirements of the query
+     * @param scoringCriteria   The scoring criteria of the query
+     * @param queryResult       The most recent query result
      */
-    public Subscription(String returnTopic, String referenceId, JSONArray requirements, JSONArray scoringCriteria, List<JSONObject> queryResult) {
-        setReturnTopic(returnTopic);
+    public Subscription(String notificationTopic, String referenceId, JSONArray requirements, JSONArray scoringCriteria, List<JSONObject> queryResult) {
+        setNotificationTopic(notificationTopic);
         setReferenceId(referenceId);
         setRequirements(requirements);
         setScoringCriteria(scoringCriteria);
@@ -45,26 +54,26 @@ public class Subscription {
     }
 
     /**
-     * Returns the return topic to which the asynchronous notifications are supposed to be sent.
+     * Returns the notification topic under which the asynchronous notifications are supposed to be published.
      *
-     * @return The return topic
+     * @return The notification topic
      */
-    public String getReturnTopic() {
-        return returnTopic;
+    public String getNotificationTopic() {
+        return notificationTopic;
     }
 
     /**
-     * Sets the return topic to which the asynchronous notifications are supposed to be sent.
+     * Sets the notification topic under which the asynchronous notifications are supposed to be published.
      *
-     * @param returnTopic The return topic to set
+     * @param notificationTopic The notification topic to set
      * @return The {@link Subscription}
      */
-    public Subscription setReturnTopic(String returnTopic) {
+    public Subscription setNotificationTopic(String notificationTopic) {
         //Sanity checks
-        if ((returnTopic == null) || returnTopic.isEmpty())
+        if ((notificationTopic == null) || notificationTopic.isEmpty())
             throw new IllegalArgumentException("The return topic must not be null or empty.");
 
-        this.returnTopic = returnTopic;
+        this.notificationTopic = notificationTopic;
         return this;
     }
 
