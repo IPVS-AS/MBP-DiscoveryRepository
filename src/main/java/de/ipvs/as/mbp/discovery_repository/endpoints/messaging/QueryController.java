@@ -1,10 +1,10 @@
 package de.ipvs.as.mbp.discovery_repository.endpoints.messaging;
 
 import de.ipvs.as.mbp.discovery_repository.TopicConfiguration;
-import de.ipvs.as.mbp.discovery_repository.service.subscription.Subscription;
 import de.ipvs.as.mbp.discovery_repository.service.descriptions.DeviceDescriptionsService;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints.MessagingController;
 import de.ipvs.as.mbp.discovery_repository.service.messaging.endpoints.MessagingEndpoint;
+import de.ipvs.as.mbp.discovery_repository.service.subscription.Subscription;
 import de.ipvs.as.mbp.discovery_repository.service.subscription.SubscriptionService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,41 +28,44 @@ public class QueryController {
     @Autowired
     private SubscriptionService subscriptionService;
 
-    @MessagingEndpoint(topic = TopicConfiguration.SUB_TOPIC_QUERY, type = "repository_test_reply")
+    @MessagingEndpoint(topic = TopicConfiguration.SUB_TOPIC_QUERY, type = "test_reply")
     public JSONObject handleQueryRequests(String topic, JSONObject message) {
         //Get message payload
         JSONObject messagePayload = message.getJSONObject("message");
 
-        //Extract requirements and scoring criteria from payload
+        //Extract relevant fields from payload
+        String referenceId = messagePayload.optString("referenceId");
         JSONArray requirements = messagePayload.optJSONArray("requirements");
         JSONArray scoringCriteria = messagePayload.optJSONArray("scoringCriteria");
-
-        //Get subscription details
-        JSONObject subscriptionDetails = messagePayload.optJSONObject("subscription");
+        String notificationTopic = messagePayload.optString("notificationTopic");
 
         //Query the device description repository using the requirements and scoring criteria
-        List<JSONObject> matchingDeviceDescriptions = deviceDescriptionsService.queryDeviceDescriptions(requirements, scoringCriteria);
+        List<JSONObject> candidateDevices = deviceDescriptionsService.queryDeviceDescriptions(requirements, scoringCriteria);
 
         //Create body of reply message
         JSONObject replyMessageBody = new JSONObject();
 
-        //Check if subscription details are available
-        replyMessageBody.put("referenceId", JSONObject.NULL);
-        if ((subscriptionDetails != null) && (!subscriptionDetails.optString("referenceId", "").isEmpty())) {
-            //Extract subscription fields
-            String returnTopic = subscriptionDetails.getString("returnTopic");
-            String referenceId = subscriptionDetails.getString("referenceId");
+        //Create revision object
+        JSONObject revisionObject = new JSONObject();
 
-            //Copy reference ID to reply message
-            replyMessageBody.put("referenceId", referenceId);
+        //Create operation object
+        JSONObject operationObject = new JSONObject();
+        operationObject.put("type", "replace");
+        operationObject.put("deviceDescriptions", new JSONArray().putAll(candidateDevices));
 
-            //Register corresponding subscription
-            Subscription newSubscription = new Subscription(returnTopic, referenceId, requirements, scoringCriteria, matchingDeviceDescriptions);
-            this.subscriptionService.registerSubscription(newSubscription);
-        }
+        //Set fields of revision object
+        revisionObject.put("referenceIds", new JSONArray().put(referenceId.isEmpty() ? JSONObject.NULL : referenceId));
+        revisionObject.put("operations", new JSONArray().put(operationObject));
 
-        //Add the matching device descriptions to the message
-        replyMessageBody.put("deviceDescriptions", new JSONArray().putAll(matchingDeviceDescriptions));
+        //Add revision object to reply message
+        replyMessageBody.put("revisions", new JSONArray().put(revisionObject));
+
+        //Check whether a subscription is supposed to be created
+        if((notificationTopic == null) || notificationTopic.isEmpty()) return replyMessageBody;
+
+        //Register corresponding subscription
+        Subscription subscription = new Subscription(notificationTopic, referenceId, requirements, scoringCriteria, candidateDevices);
+        this.subscriptionService.registerSubscription(subscription);
 
         //Return body of the reply message
         return replyMessageBody;
